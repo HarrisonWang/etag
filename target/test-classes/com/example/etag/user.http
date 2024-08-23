@@ -1,0 +1,37 @@
+## 一、缓存验证
+### 1.获取用户信息
+GET http://localhost:8080/users/1
+
+### 2.获取用户信息（返回304，浏览器会从自动使用缓存的内容）
+GET http://localhost:8080/users/1
+If-None-Match: "927973112"
+
+## 二、乐观并发控制（乐观锁）
+### 1.修改用户信息
+PUT http://localhost:8080/users/1
+Content-Type: application/json
+If-Match: "927973112"
+
+{
+  "name": "zhangsan",
+  "email": "zhangsan@example.com"
+}
+
+### 2.修改用户信息（返回412，表示资源已经被修改）
+PUT http://localhost:8080/users/1
+Content-Type: application/json
+If-Match: "927973113"
+
+{
+  "name": "zhangsan",
+  "email": "zhangsan@example.com"
+}
+
+### activate
+POST http://localhost:8080/users/123:activate
+
+### deactivate
+POST http://localhost:8080/users/456:deactivate
+
+### resetPassword
+POST http://localhost:8080/users/789:resetPassword
