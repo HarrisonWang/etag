@@ -1,5 +1,0 @@
-com\example\etag\EtagApplication.class
-com\example\etag\controller\UserController.class
-com\example\etag\service\UserService.class
-com\example\etag\service\impl\UserServiceImpl.class
-com\example\etag\entity\User.class
