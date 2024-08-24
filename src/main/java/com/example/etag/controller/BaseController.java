@@ -10,12 +10,9 @@ import java.lang.reflect.Method;
 public abstract class BaseController<T> {
 
     @PostMapping("/{id}:{action}")
-    public T handleAction(@PathVariable String id, @PathVariable String action) throws Exception {
+    public T handleAction(@PathVariable Long id, @PathVariable String action) throws Exception {
         Method method = findActionMethod(action);
         if (method != null) {
-            if (method.getDeclaringClass() != this.getClass()) {
-                method.setAccessible(true);
-            }
             return (T) method.invoke(this, id);
         }
         throw new IllegalArgumentException("Unknown action: " + action);

@@ -21,4 +21,9 @@ public class UserServiceImpl implements UserService {
         return existingUser;
     }
 
+    @Override
+    public User createUser(User user) {
+        return new User(1L, user.getName(), user.getEmail(), "ACTIVE", user.getPassword());
+    }
+
 }

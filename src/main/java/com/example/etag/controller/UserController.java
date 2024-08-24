@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -53,18 +54,27 @@ public class UserController extends BaseController<String> {
                 .body(updatedUser);
     }
 
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        String etag = "\"" + createdUser.hashCode() + "\"";
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .eTag(etag)
+                .body(createdUser);
+    }
+
     @ActionMapping("activate")
-    public String activateUser(String id) {
+    public String activateUser(Long id) {
         return "User " + id + " activated";
     }
 
     @ActionMapping("deactivate")
-    public String deactivateUser(String id) {
+    public String deactivateUser(Long id) {
         return "User " + id + " deactivated";
     }
 
     @ActionMapping("resetPassword")
-    public String resetUserPassword(String id) {
+    public String resetUserPassword(Long id) {
         return "Password reset initiated for user " + id;
     }
 
