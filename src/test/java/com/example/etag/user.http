@@ -27,7 +27,8 @@ If-Match: "927973113"
   "email": "zhangsan@example.com"
 }
 
-### 
+## 三、自定义方法
+### 1.新建用户
 POST http://localhost:8080/users
 Content-Type: application/json
 
@@ -37,11 +38,20 @@ Content-Type: application/json
   "password": "123456"
 }
 
-### activate
+### 2.激活用户
 POST http://localhost:8080/users/123:activate
 
-### deactivate
+### 3.停用用户
 POST http://localhost:8080/users/456:deactivate
 
-### resetPassword
+### 4.重置密码
 POST http://localhost:8080/users/789:resetPassword
+
+## 四、API 版本控制
+### 1.获取用户信息v1
+GET http://localhost:8080/users/1
+Accept: application/vnd.example.v1+json
+
+### 2.获取用户信息v2
+GET http://localhost:8080/users/1
+Accept: application/vnd.example.v2+json

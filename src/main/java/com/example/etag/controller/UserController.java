@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.etag.annotation.ActionMapping;
+import com.example.etag.annotation.ApiVersion;
 import com.example.etag.entity.User;
 import com.example.etag.service.UserService;
 
@@ -27,6 +28,26 @@ public class UserController extends BaseController<String> {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
+        User user = userService.getUser(id);
+        String etag = "\"" + user.hashCode() + "\"";
+        return ResponseEntity.ok()
+                .eTag(etag)
+                .body(user);
+    }
+
+    @ApiVersion(value = 1, produces = "application/vnd.example.etag-v1+json")
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserV1(@PathVariable Long id) {
+        User user = userService.getUser(id);
+        String etag = "\"" + user.hashCode() + "\"";
+        return ResponseEntity.ok()
+                .eTag(etag)
+                .body(user);
+    }
+
+    @ApiVersion(value = 2, produces = "application/vnd.example.etag-v2+json")
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserV2(@PathVariable Long id) {
         User user = userService.getUser(id);
         String etag = "\"" + user.hashCode() + "\"";
         return ResponseEntity.ok()
