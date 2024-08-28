@@ -1,16 +1,23 @@
 ## 一、缓存验证
-### 1.获取用户信息
+### 1.获取用户列表
+GET http://localhost:8080/users
+
+### 2.获取用户列表（返回304，浏览器会从自动使用缓存的内容）
+GET http://localhost:8080/users
+If-None-Match: "1315208442"
+
+### 3.获取用户信息
 GET http://localhost:8080/users/1
 
-### 2.获取用户信息（返回304，浏览器会从自动使用缓存的内容）
+### 4.获取用户信息（返回304，浏览器会从自动使用缓存的内容）
 GET http://localhost:8080/users/1
-If-None-Match: "927973112"
+If-None-Match: "1190737283"
 
 ## 二、乐观并发控制（乐观锁）
 ### 1.修改用户信息
 PUT http://localhost:8080/users/1
 Content-Type: application/json
-If-Match: "927973112"
+If-Match: "1190737283"
 
 {
   "name": "zhangsan",
@@ -27,7 +34,6 @@ If-Match: "927973113"
   "email": "zhangsan@example.com"
 }
 
-## 三、自定义方法
 ### 1.新建用户
 POST http://localhost:8080/users
 Content-Type: application/json
@@ -38,14 +44,24 @@ Content-Type: application/json
   "password": "123456"
 }
 
-### 2.激活用户
+### 2.删除用户
+DELETE http://localhost:8080/users/1
+
+## 三、自定义方法
+### 1.激活用户
 POST http://localhost:8080/users/123:activate
 
-### 3.停用用户
+### 2.停用用户
 POST http://localhost:8080/users/456:deactivate
 
-### 4.重置密码
-POST http://localhost:8080/users/789:resetPassword
+### 3.重置密码
+POST http://localhost:8080/users/1:resetPassword
+Content-Type: application/json
+
+{
+  "currentPassword": "password",
+  "newPassword": "654321"
+}
 
 ## 四、API 版本控制
 ### 1.获取用户信息v1

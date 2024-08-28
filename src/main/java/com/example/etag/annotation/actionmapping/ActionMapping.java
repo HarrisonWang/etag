@@ -1,4 +1,4 @@
-package com.example.etag.annotation;
+package com.example.etag.annotation.actionmapping;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

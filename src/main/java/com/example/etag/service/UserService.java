@@ -1,13 +1,21 @@
 package com.example.etag.service;
 
+import java.util.List;
+
+import com.example.etag.dto.NewPassword;
 import com.example.etag.entity.User;
 
 public interface UserService {
 
-    User getUser(Long id);
+    User create(User user);
 
-    User updateUser(User user);
+    User get(Long id);
 
-    User createUser(User user);
+    List<User> list();
 
+    User update(User user);
+
+    void delete(Long id);
+
+    User resetPassword(NewPassword newPassword);
 }

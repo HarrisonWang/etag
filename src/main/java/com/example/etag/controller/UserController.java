@@ -1,7 +1,13 @@
 package com.example.etag.controller;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,14 +17,17 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.etag.annotation.ActionMapping;
-import com.example.etag.annotation.ApiVersion;
+import com.example.etag.annotation.pathinject.InjectId;
+import com.example.etag.dto.ExistingUser;
+import com.example.etag.dto.NewPassword;
+import com.example.etag.dto.NewUser;
+import com.example.etag.dto.UpdatedUser;
 import com.example.etag.entity.User;
 import com.example.etag.service.UserService;
 
 @RestController
 @RequestMapping("/users")
-public class UserController extends BaseController<String> {
+public class UserController {
 
     private final UserService userService;
 
@@ -27,76 +36,69 @@ public class UserController extends BaseController<String> {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
-        User user = userService.getUser(id);
+    public ResponseEntity<ExistingUser> get(@PathVariable Long id) {
+        User user = userService.get(id);
         String etag = "\"" + user.hashCode() + "\"";
+        ExistingUser existingUser = ExistingUser.fromEntity(user, ExistingUser.class);
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
                 .eTag(etag)
-                .body(user);
+                .body(existingUser);
     }
 
-    @ApiVersion(value = 1, produces = "application/vnd.example.etag-v1+json")
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserV1(@PathVariable Long id) {
-        User user = userService.getUser(id);
-        String etag = "\"" + user.hashCode() + "\"";
+    @GetMapping
+    public ResponseEntity<List<User>> list() {
+        List<User> users = userService.list();
+        String etag = "\"" + Objects.hash(users) + "\"";
         return ResponseEntity.ok()
                 .eTag(etag)
-                .body(user);
-    }
-
-    @ApiVersion(value = 2, produces = "application/vnd.example.etag-v2+json")
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserV2(@PathVariable Long id) {
-        User user = userService.getUser(id);
-        String etag = "\"" + user.hashCode() + "\"";
-        return ResponseEntity.ok()
-                .eTag(etag)
-                .body(user);
+                .body(users);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user,
+    public ResponseEntity<ExistingUser> update(@PathVariable Long id, @InjectId @RequestBody UpdatedUser updatedUser,
             @RequestHeader(value = "If-Match", required = false) String ifMatch) {
-        User existingUser = userService.getUser(id);
-        String currentEtag = "\"" + existingUser.hashCode() + "\"";
-        if (ifMatch != null && !currentEtag.equals(ifMatch)) {
+        User entity = userService.get(id);
+        String currentEtag = "\"" + entity.hashCode() + "\"";
+        if (!Objects.equals(ifMatch, currentEtag)) {
             return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
                     .eTag(currentEtag)
-                    .body(existingUser);
+                    .build();
         }
 
-        user.setId(id);
-        User updatedUser = userService.updateUser(user);
-        String newEtag = "\"" + updatedUser.hashCode() + "\"";
-
-        return ResponseEntity.ok()
-                .eTag(newEtag)
-                .body(updatedUser);
+        User user = userService.update(updatedUser.toEntity());
+        ExistingUser existingUser = ExistingUser.fromEntity(user, ExistingUser.class);
+        return ResponseEntity.ok(existingUser);
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user);
-        String etag = "\"" + createdUser.hashCode() + "\"";
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .eTag(etag)
-                .body(createdUser);
+    public ResponseEntity<ExistingUser> create(@RequestBody NewUser newUser) {
+        User user = userService.create(newUser.toEntity());
+        ExistingUser existingUser = ExistingUser.fromEntity(user, ExistingUser.class);
+        return ResponseEntity.ok(existingUser);
     }
 
-    @ActionMapping("activate")
-    public String activateUser(Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}:activate")
+    public String activate(@PathVariable Long id) {
         return "User " + id + " activated";
     }
 
-    @ActionMapping("deactivate")
-    public String deactivateUser(Long id) {
+    @PostMapping("/{id}:deactivate")
+    public String deactivate(@PathVariable Long id) {
         return "User " + id + " deactivated";
     }
 
-    @ActionMapping("resetPassword")
-    public String resetUserPassword(Long id) {
-        return "Password reset initiated for user " + id;
+    @PostMapping("/{id}:resetPassword")
+    public ResponseEntity<ExistingUser> resetPassword(@PathVariable Long id, @InjectId @RequestBody NewPassword newPassword) {
+        User user = userService.resetPassword(newPassword);
+        ExistingUser existingUser = ExistingUser.fromEntity(user, ExistingUser.class);
+        return ResponseEntity.ok(existingUser);
     }
 
 }
